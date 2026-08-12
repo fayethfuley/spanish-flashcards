@@ -5,35 +5,76 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Spanish Flashcards</title>
   <style>
-    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background-color: #f7f6f3; color: #37352f; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
-    .card-container { background: white; border: 1px solid #e9e9e7; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); width: 100%; max-width: 400px; padding: 24px; text-align: center; }
-    .progress { font-size: 12px; color: #787774; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
-    .flashcard { background: #fbfbfa; border: 1px solid #e1e1de; border-radius: 8px; height: 160px; display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; padding: 16px; margin-bottom: 20px; transition: transform 0.1s ease; }
+    :root {
+      --bg-color: #f7f6f3;
+      --card-bg: #ffffff;
+      --flashcard-bg: #fbfbfa;
+      --border-color: #e9e9e7;
+      --flashcard-border: #e1e1de;
+      --text-main: #37352f;
+      --text-phrase: #2f2f2f;
+      --text-sub: #787774;
+      --text-hint: #9b9a97;
+      --translation-color: #0b6e99;
+      --btn-sec-bg: #f1f0ef;
+      --btn-sec-hover: #e3e2e0;
+    }
+
+    body.dark-mode {
+      --bg-color: #191919;
+      --card-bg: #202020;
+      --flashcard-bg: #262626;
+      --border-color: #2f2f2f;
+      --flashcard-border: #373737;
+      --text-main: #rgba(255, 255, 255, 0.81);
+      --text-phrase: #ffffff;
+      --text-sub: #9b9a97;
+      --text-hint: #787774;
+      --translation-color: #53b5e6;
+      --btn-sec-bg: #2f2f2f;
+      --btn-sec-hover: #373737;
+    }
+
+    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; transition: background-color 0.2s, color 0.2s, border-color 0.2s; }
+    body { background-color: var(--bg-color); color: var(--text-main); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
+    .card-container { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); width: 100%; max-width: 400px; padding: 24px; text-align: center; position: relative; }
+    
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .progress { font-size: 12px; color: var(--text-sub); text-transform: uppercase; letter-spacing: 1px; }
+    .theme-toggle { background: transparent; border: 1px solid var(--border-color); color: var(--text-main); font-size: 14px; padding: 4px 8px; border-radius: 6px; cursor: pointer; }
+    .theme-toggle:hover { background: var(--btn-sec-bg); }
+
+    .flashcard { background: var(--flashcard-bg); border: 1px solid var(--flashcard-border); border-radius: 8px; height: 160px; display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; padding: 16px; margin-bottom: 20px; transition: transform 0.1s ease; }
     .flashcard:active { transform: scale(0.98); }
-    .phrase { font-size: 20px; font-weight: 600; color: #2f2f2f; margin-bottom: 8px; }
-    .hint { font-size: 13px; color: #9b9a97; font-style: italic; }
-    .translation { font-size: 18px; color: #0b6e99; font-weight: 500; display: none; }
+    .phrase { font-size: 20px; font-weight: 600; color: var(--text-phrase); margin-bottom: 8px; }
+    .hint { font-size: 13px; color: var(--text-hint); font-style: italic; }
+    .translation { font-size: 18px; color: var(--translation-color); font-weight: 500; display: none; }
+    
     .controls { display: flex; gap: 10px; justify-content: center; }
-    button { background: #2eaadc; color: white; border: none; padding: 10px 16px; border-radius: 6px; font-weight: 500; cursor: pointer; transition: background 0.2s; }
-    button:hover { background: #0082b2; }
-    button.secondary { background: #f1f0ef; color: #37352f; }
-    button.secondary:hover { background: #e3e2e0; }
+    button.action-btn { background: #2eaadc; color: white; border: none; padding: 10px 16px; border-radius: 6px; font-weight: 500; cursor: pointer; transition: background 0.2s; }
+    button.action-btn:hover { background: #0082b2; }
+    button.secondary { background: var(--btn-sec-bg); color: var(--text-main); }
+    button.secondary:hover { background: var(--btn-sec-hover); }
   </style>
 </head>
 <body>
 
 <div class="card-container">
-  <div class="progress" id="progress">Card 1 of 22</div>
+  <div class="header">
+    <div class="progress" id="progress">Card 1 of 26</div>
+    <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">🌙 Night</button>
+  </div>
+
   <div class="flashcard" onclick="flipCard()">
     <div class="phrase" id="front">Hola</div>
     <div class="hint" id="hint">(ola) - silent h</div>
     <div class="translation" id="back">Hello</div>
   </div>
+
   <div class="controls">
-    <button class="secondary" onclick="prevCard()">Previous</button>
-    <button class="secondary" onclick="shuffleCards()">Shuffle</button>
-    <button onclick="nextCard()">Next</button>
+    <button class="action-btn secondary" onclick="prevCard()">Previous</button>
+    <button class="action-btn secondary" onclick="shuffleCards()">Shuffle</button>
+    <button class="action-btn" onclick="nextCard()">Next</button>
   </div>
 </div>
 
@@ -103,6 +144,12 @@
     cards.sort(() => Math.random() - 0.5);
     currentIndex = 0;
     updateCard();
+  }
+
+  function toggleTheme() {
+    document.body.classList.toggle('dark-mode');
+    const isDark = document.body.classList.contains('dark-mode');
+    document.getElementById('themeBtn').innerText = isDark ? '☀️ Day' : '🌙 Night';
   }
 
   updateCard();
