@@ -26,35 +26,47 @@
       --flashcard-bg: #262626;
       --border-color: #2f2f2f;
       --flashcard-border: #373737;
-      --text-main: #rgba(255, 255, 255, 0.81);
+      --text-main: #ffffff;
       --text-phrase: #ffffff;
-      --text-sub: #9b9a97;
-      --text-hint: #787774;
+      --text-sub: #d3d3d3;
+      --text-hint: #aaaaaa;
       --translation-color: #53b5e6;
       --btn-sec-bg: #2f2f2f;
       --btn-sec-hover: #373737;
     }
 
-    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; transition: background-color 0.2s, color 0.2s, border-color 0.2s; }
+    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; transition: background-color 0.2s, color 0.2s, border-color 0.2s; -webkit-tap-highlight-color: transparent; }
     body { background-color: var(--bg-color); color: var(--text-main); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
     .card-container { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); width: 100%; max-width: 400px; padding: 24px; text-align: center; position: relative; }
     
     .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-    .progress { font-size: 12px; color: var(--text-sub); text-transform: uppercase; letter-spacing: 1px; }
+    .progress { font-size: 12px; color: var(--text-sub); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
     .theme-toggle { background: transparent; border: 1px solid var(--border-color); color: var(--text-main); font-size: 14px; padding: 4px 8px; border-radius: 6px; cursor: pointer; }
     .theme-toggle:hover { background: var(--btn-sec-bg); }
 
-    .flashcard { background: var(--flashcard-bg); border: 1px solid var(--flashcard-border); border-radius: 8px; height: 160px; display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; padding: 16px; margin-bottom: 20px; transition: transform 0.1s ease; }
+    .flashcard { background: var(--flashcard-bg); border: 1px solid var(--flashcard-border); border-radius: 8px; height: 160px; display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; padding: 16px; margin-bottom: 20px; transition: transform 0.1s ease; user-select: none; }
     .flashcard:active { transform: scale(0.98); }
     .phrase { font-size: 20px; font-weight: 600; color: var(--text-phrase); margin-bottom: 8px; }
     .hint { font-size: 13px; color: var(--text-hint); font-style: italic; }
     .translation { font-size: 18px; color: var(--translation-color); font-weight: 500; display: none; }
     
-    .controls { display: flex; gap: 10px; justify-content: center; }
-    button.action-btn { background: #2eaadc; color: white; border: none; padding: 10px 16px; border-radius: 6px; font-weight: 500; cursor: pointer; transition: background 0.2s; }
-    button.action-btn:hover { background: #0082b2; }
+    .controls { display: flex; gap: 8px; justify-content: center; }
+    button.action-btn { border: none; padding: 10px 14px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: background 0.2s, transform 0.1s; flex: 1; }
+    button.action-btn:active { transform: scale(0.96); }
+    
+    button.btn-wrong { background: #e03e3e; color: white; }
+    button.btn-wrong:hover { background: #c23333; }
+    
+    button.btn-correct { background: #0f7b6c; color: white; }
+    button.btn-correct:hover { background: #0b5c51; }
+
     button.secondary { background: var(--btn-sec-bg); color: var(--text-main); }
     button.secondary:hover { background: var(--btn-sec-hover); }
+
+    .score-screen { display: none; padding: 20px 0; }
+    .score-title { font-size: 22px; font-weight: bold; color: var(--text-phrase); margin-bottom: 10px; }
+    .score-stats { font-size: 16px; color: var(--text-sub); margin-bottom: 20px; }
+    .score-percentage { font-size: 36px; font-weight: 800; color: var(--translation-color); margin-bottom: 20px; }
   </style>
 </head>
 <body>
@@ -65,21 +77,32 @@
     <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">🌙 Night</button>
   </div>
 
-  <div class="flashcard" onclick="flipCard()">
-    <div class="phrase" id="front">Hola</div>
-    <div class="hint" id="hint">(ola) - silent h</div>
-    <div class="translation" id="back">Hello</div>
+  <div id="game-view">
+    <div class="flashcard" id="flashcard" onclick="flipCard()">
+      <div class="phrase" id="front">Hola</div>
+      <div class="hint" id="hint">(ola) - silent h</div>
+      <div class="translation" id="back">Hello</div>
+    </div>
+
+    <div class="controls">
+      <button class="action-btn btn-wrong" onclick="markAnswer(false)">❌ Incorrect</button>
+      <button class="action-btn secondary" onclick="shuffleCards()">🔀 Shuffle</button>
+      <button class="action-btn btn-correct" onclick="markAnswer(true)">✅ Correct</button>
+    </div>
   </div>
 
-  <div class="controls">
-    <button class="action-btn secondary" onclick="prevCard()">Previous</button>
-    <button class="action-btn secondary" onclick="shuffleCards()">Shuffle</button>
-    <button class="action-btn" onclick="nextCard()">Next</button>
+  <div class="score-screen" id="score-view">
+    <div class="score-title">Lesson Complete! 🎉</div>
+    <div class="score-percentage" id="score-percent">0%</div>
+    <div class="score-stats" id="score-details">You got 0 out of 0 correct.</div>
+    <div class="controls">
+      <button class="action-btn btn-correct" onclick="restartGame()">🔄 Replay Game</button>
+    </div>
   </div>
 </div>
 
 <script>
-  const cards = [
+  const originalCards = [
     { es: "Hola", hint: "(ola) - silent h", en: "Hello" },
     { es: "¿Cómo estás?", hint: "", en: "How are you?" },
     { es: "¿Qué tal?", hint: "", en: "What's up? / How's it going?" },
@@ -108,8 +131,10 @@
     { es: "¡Nos vemos!", hint: "", en: "We see each other!" }
   ];
 
+  let cards = [...originalCards];
   let currentIndex = 0;
   let isFlipped = false;
+  let correctCount = 0;
 
   function updateCard() {
     isFlipped = false;
@@ -130,20 +155,38 @@
     document.getElementById('back').style.display = isFlipped ? 'block' : 'none';
   }
 
-  function nextCard() {
-    currentIndex = (currentIndex + 1) % cards.length;
-    updateCard();
+  function markAnswer(isCorrect) {
+    if (isCorrect) correctCount++;
+    
+    if (currentIndex + 1 < cards.length) {
+      currentIndex++;
+      updateCard();
+    } else {
+      showScore();
+    }
   }
 
-  function prevCard() {
-    currentIndex = (currentIndex - 1 + cards.length) % cards.length;
+  function showScore() {
+    document.getElementById('game-view').style.display = 'none';
+    document.getElementById('score-view').style.display = 'block';
+    document.getElementById('progress').innerText = "Finished";
+    
+    const percentage = Math.round((correctCount / cards.length) * 100);
+    document.getElementById('score-percent').innerText = `${percentage}%`;
+    document.getElementById('score-details').innerText = `You answered ${correctCount} out of ${cards.length} correctly!`;
+  }
+
+  function restartGame() {
+    correctCount = 0;
+    currentIndex = 0;
+    document.getElementById('score-view').style.display = 'none';
+    document.getElementById('game-view').style.display = 'block';
     updateCard();
   }
 
   function shuffleCards() {
     cards.sort(() => Math.random() - 0.5);
-    currentIndex = 0;
-    updateCard();
+    restartGame();
   }
 
   function toggleTheme() {
